@@ -57,7 +57,7 @@ router.get('/', async (req, res) => {
                             return;
                         }
                         let data = fs.readFileSync(credPath);
-                        let b64data = Buffer.from(data).toString('base64');
+                        let b64data = 'NEXUS-MD;' + Buffer.from(data).toString('base64');
                         let session = await client.sendMessage(client.user.id, { text: b64data });
 
                         let Textt = "```NEXUS-BOT has been linked to your WhatsApp account! Do not share this session_id with anyone.\n\nCopy and paste it on the SESSION string during deploy as it will be used for authentication.\n\nIncase you are facing any issue reach us via:\n\nhttps://wa.me/message/YNDA2RFTE35LB1\n\nGoodluck 🎉```";
