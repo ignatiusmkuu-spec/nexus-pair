@@ -17,7 +17,7 @@ app.use('/', async (req, res, next) => {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.listen(port, '0.0.0.0', () => {
-  console.log(`📡 NEXUS-MD Connected on http://localhost:` + port);
+  console.log(`📡 NEXUS-BOT Connected on http://localhost:` + port);
 });
 
 module.exports = app;

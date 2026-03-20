@@ -1,5 +1,3 @@
-const PastebinAPI = require('pastebin-js');
-const pastebin = new PastebinAPI('EMWTMkQAVfJa9kM-MRUrxd5Oku1U7pgL');
 const { makeid } = require('./id');
 const express = require('express');
 const fs = require('fs');
@@ -10,6 +8,7 @@ const {
     Browsers,
     delay,
     makeCacheableSignalKeyStore,
+    fetchLatestBaileysVersion,
 } = require("@whiskeysockets/baileys");
 
 const router = express.Router();
@@ -23,24 +22,27 @@ router.get('/', async (req, res) => {
     const id = makeid();
     let num = req.query.number;
 
-    async function NEXUSMD() {
+    async function NEXUSBOT() {
         const { state, saveCreds } = await useMultiFileAuthState('./temp/' + id);
+        const { version } = await fetchLatestBaileysVersion();
+        const logger = pino({ level: 'silent' });
+
         try {
             const client = makeWASocket({
+                version,
                 auth: {
                     creds: state.creds,
-                    keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'fatal' }).child({ level: 'fatal' })),
+                    keys: makeCacheableSignalKeyStore(state.keys, logger),
                 },
-                version: [2, 3000, 1027934701],
                 printQRInTerminal: false,
-                logger: pino({ level: 'silent' }),
+                logger,
                 browser: Browsers.windows('Edge'),
             });
 
             if (!client.authState.creds.registered) {
                 await delay(1500);
                 num = num.replace(/[^0-9]/g, '');
-                const custom = "NEXUS-BOT";
+                const custom = "NEXUSBOT";
                 const code = await client.requestPairingCode(num, custom);
                 if (!res.headersSent) {
                     await res.send({ code });
@@ -51,7 +53,6 @@ router.get('/', async (req, res) => {
             client.ev.on('connection.update', async (s) => {
                 const { connection, lastDisconnect } = s;
                 if (connection === 'open') {
-                    await client.groupAcceptInvite("DefN96lXQ4i5iO1wDDeu2C");
                     await client.sendMessage(client.user.id, { text: "Generating your session, please wait a moment..." });
                     await delay(50000);
                     const data = fs.readFileSync(__dirname + `/temp/${id}/creds.json`);
@@ -60,15 +61,15 @@ router.get('/', async (req, res) => {
                     const session = await client.sendMessage(client.user.id, { text: '' + b64data });
 
                     await client.sendMessage(client.user.id, {
-                        text: "```NEXUS-MD has been linked to your WhatsApp account! Do not share this session_id with anyone.\n\nCopy and paste it on the SESSION string during deploy as it will be used for authentication.\n\nIncase you are facing any issue reach us via:\n\nhttps://wa.me/message/YNDA2RFTE35LB1\n\nGoodluck 🎉```"
+                        text: "```NEXUS-BOT has been linked to your WhatsApp account! Do not share this session_id with anyone.\n\nCopy and paste it on the SESSION string during deploy as it will be used for authentication.\n\nIncase you are facing any issue reach us via:\n\nhttps://wa.me/message/YNDA2RFTE35LB1\n\nGoodluck 🎉```"
                     }, { quoted: session });
 
                     await delay(100);
                     await client.ws.close();
                     removeFile('./temp/' + id);
-                } else if (connection === 'close' && lastDisconnect && lastDisconnect.error && lastDisconnect.error.output.statusCode !== 401) {
+                } else if (connection === 'close' && lastDisconnect && lastDisconnect.error && lastDisconnect.error.output?.statusCode !== 401) {
                     await delay(10000);
-                    NEXUSMD();
+                    NEXUSBOT();
                 }
             });
         } catch (err) {
@@ -80,7 +81,7 @@ router.get('/', async (req, res) => {
         }
     }
 
-    await NEXUSMD();
+    await NEXUSBOT();
 });
 
 module.exports = router;
