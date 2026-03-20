@@ -1,31 +1,33 @@
-# Nexus Pair
+# NEXUS-MD Session Generator
 
 ## Project Overview
-A React + Vite web application scaffolded from a blank GitHub import.
+A WhatsApp session generator (NEXUS-MD) built with Node.js and Express. Allows users to generate WhatsApp session credentials via QR code or pairing code using the Baileys library.
 
 ## Architecture
-- **Frontend**: React 18 with Vite build tool
-- **Language**: JavaScript (JSX)
-- **Styling**: Plain CSS
+- **Runtime**: Node.js 20
+- **Framework**: Express.js
+- **WhatsApp Library**: @whiskeysockets/baileys (wileys)
+- **Port**: 5000
 
 ## Project Structure
 ```
 nexus-pair/
-├── src/
-│   ├── main.jsx       # App entry point
-│   ├── App.jsx        # Root component
-│   ├── App.css        # Component styles
-│   └── index.css      # Global styles
-├── index.html         # HTML template
-├── vite.config.js     # Vite configuration (host 0.0.0.0, port 5000)
-└── package.json       # Dependencies and scripts
+├── index.js       # Express server entry point (port 5000)
+├── pair.js        # Pairing code route handler (/code)
+├── qr.js          # QR code route handler (/qr)
+├── id.js          # Random ID generator utility
+├── main.html      # Landing page with PAIR CODE / QR SCAN buttons
+├── pair.html      # Pairing code UI
+├── app.json       # Heroku/deployment config
+├── package.json   # Dependencies
+└── temp/          # Temporary session storage (gitignored)
 ```
 
-## Development
-- Run `npm run dev` to start the dev server on port 5000
-- The workflow "Start application" handles this automatically
+## Session Prefix
+Sessions are generated with the prefix **NEXUS-MD**.
 
-## Deployment
-- Configured as a static site deployment
-- Build command: `npm run build`
-- Public directory: `dist`
+## Routes
+- `/` — Landing page
+- `/pair` — Pairing code UI
+- `/qr` — QR code scan page
+- `/code?number=<phone>` — API to get pairing code
