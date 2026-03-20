@@ -10,12 +10,9 @@ const pino = require("pino");
 const {
     default: RavenConnect,
     useMultiFileAuthState,
-    jidNormalizedUser,
     Browsers,
     delay,
-    makeInMemoryStore,
 } = require("@whiskeysockets/baileys");
-const { readFile } = require("node:fs/promises");
 
 function removeFile(FilePath) {
     if (!fs.existsSync(FilePath)) return false;
