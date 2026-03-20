@@ -40,7 +40,7 @@ router.get('/', async (req, res) => {
             if (!client.authState.creds.registered) {
                 await delay(1500);
                 num = num.replace(/[^0-9]/g, '');
-                const custom = "NEXUS-MD";
+                const custom = "NEXUS-BOT";
                 const code = await client.requestPairingCode(num, custom);
                 if (!res.headersSent) {
                     await res.send({ code });
