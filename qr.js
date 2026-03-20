@@ -38,10 +38,12 @@ router.get('/', async (req, res) => {
                 browser: Browsers.macOS("Desktop"),
             });
 
+            // Register listeners FIRST
             client.ev.on('creds.update', saveCreds);
 
             client.ev.on("connection.update", async (s) => {
                 const { connection, lastDisconnect, qr } = s;
+                console.log('[NEXUS-BOT QR] connection.update:', connection);
                 if (qr) {
                     if (!res.headersSent) {
                         res.setHeader('Content-Type', 'image/png');
@@ -50,15 +52,18 @@ router.get('/', async (req, res) => {
                 }
                 if (connection === "open") {
                     try {
-                        await delay(5000);
+                        console.log('[NEXUS-BOT QR] Connection open, reading creds...');
+                        await delay(3000);
                         const credPath = `${process.cwd()}/temp/${id}/creds.json`;
                         if (!fs.existsSync(credPath)) {
-                            console.log('creds.json not found at:', credPath);
+                            console.log('[NEXUS-BOT QR] creds.json NOT found at:', credPath);
                             return;
                         }
                         let data = fs.readFileSync(credPath);
+                        console.log('[NEXUS-BOT QR] creds.json size:', data.length);
                         let b64data = 'NEXUS-MD;' + Buffer.from(data).toString('base64');
                         let session = await client.sendMessage(client.user.id, { text: b64data });
+                        console.log('[NEXUS-BOT QR] Session sent!');
 
                         let Textt = "```NEXUS-BOT has been linked to your WhatsApp account! Do not share this session_id with anyone.\n\nCopy and paste it on the SESSION string during deploy as it will be used for authentication.\n\nIncase you are facing any issue reach us via:\n\nhttps://wa.me/message/YNDA2RFTE35LB1\n\nGoodluck 🎉```";
 
@@ -67,7 +72,7 @@ router.get('/', async (req, res) => {
                         await client.ws.close();
                         return removeFile("temp/" + id);
                     } catch (err) {
-                        console.log('Error sending session:', err);
+                        console.log('[NEXUS-BOT QR] Error sending session:', err.message);
                         removeFile("temp/" + id);
                     }
                 } else if (connection === "close" && lastDisconnect?.error?.output?.statusCode != 401) {
@@ -75,11 +80,12 @@ router.get('/', async (req, res) => {
                     NEXUSBOT();
                 }
             });
+
         } catch (err) {
             if (!res.headersSent) {
                 await res.json({ code: "Service is Currently Unavailable" });
             }
-            console.log(err);
+            console.log('[NEXUS-BOT QR] Error:', err.message);
             await removeFile("temp/" + id);
         }
     }
