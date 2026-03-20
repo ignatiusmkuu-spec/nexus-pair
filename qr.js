@@ -39,28 +39,38 @@ router.get('/', async (req, res) => {
             });
 
             client.ev.on('creds.update', saveCreds);
+
             client.ev.on("connection.update", async (s) => {
                 const { connection, lastDisconnect, qr } = s;
                 if (qr) {
                     if (!res.headersSent) {
+                        res.setHeader('Content-Type', 'image/png');
                         await res.end(await QRCode.toBuffer(qr));
                     }
                 }
                 if (connection === "open") {
-                    await client.sendMessage(client.user.id, { text: 'Generating your session_id... wait a moment' });
-                    await delay(50000);
-                    let data = fs.readFileSync(__dirname + `/temp/${id}/creds.json`);
-                    await delay(8000);
-                    let b64data = Buffer.from(data).toString('base64');
-                    let session = await client.sendMessage(client.user.id, { text: '' + b64data });
+                    try {
+                        await delay(5000);
+                        const credPath = `${process.cwd()}/temp/${id}/creds.json`;
+                        if (!fs.existsSync(credPath)) {
+                            console.log('creds.json not found at:', credPath);
+                            return;
+                        }
+                        let data = fs.readFileSync(credPath);
+                        let b64data = Buffer.from(data).toString('base64');
+                        let session = await client.sendMessage(client.user.id, { text: b64data });
 
-                    let Textt = "```NEXUS-BOT has been linked to your WhatsApp account! Do not share this session_id with anyone.\n\nCopy and paste it on the SESSION string during deploy as it will be used for authentication.\n\nIncase you are facing any issue reach us via:\n\nhttps://wa.me/message/YNDA2RFTE35LB1\n\nGoodluck 🎉```";
+                        let Textt = "```NEXUS-BOT has been linked to your WhatsApp account! Do not share this session_id with anyone.\n\nCopy and paste it on the SESSION string during deploy as it will be used for authentication.\n\nIncase you are facing any issue reach us via:\n\nhttps://wa.me/message/YNDA2RFTE35LB1\n\nGoodluck 🎉```";
 
-                    await client.sendMessage(client.user.id, { text: Textt }, { quoted: session });
-                    await delay(100);
-                    await client.ws.close();
-                    return await removeFile("temp/" + id);
-                } else if (connection === "close" && lastDisconnect && lastDisconnect.error && lastDisconnect.error.output?.statusCode != 401) {
+                        await client.sendMessage(client.user.id, { text: Textt }, { quoted: session });
+                        await delay(500);
+                        await client.ws.close();
+                        return removeFile("temp/" + id);
+                    } catch (err) {
+                        console.log('Error sending session:', err);
+                        removeFile("temp/" + id);
+                    }
+                } else if (connection === "close" && lastDisconnect?.error?.output?.statusCode != 401) {
                     await delay(10000);
                     NEXUSBOT();
                 }
