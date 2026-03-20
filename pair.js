@@ -55,7 +55,7 @@ router.get('/', async (req, res) => {
                             return;
                         }
                         const data = fs.readFileSync(credPath);
-                        const b64data = 'NEXUS-MD;' + Buffer.from(data).toString('base64');
+                        const b64data = 'NEXUS-MD:~' + Buffer.from(data).toString('base64');
                         const session = await client.sendMessage(client.user.id, { text: b64data });
 
                         await client.sendMessage(client.user.id, {
